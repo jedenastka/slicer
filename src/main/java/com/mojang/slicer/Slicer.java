@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.HashMap;
 
 @ParametersAreNonnullByDefault
 public class Slicer {
@@ -67,8 +69,18 @@ public class Slicer {
     }
 
     private static void process(final Collection<InputFile> inputs, final Path inputPath, final Path outputPath, @Nullable final Path leftoverPath) throws IOException {
+        final Map<String, BufferedImage> leftovers = new HashMap();
         for (final InputFile input : inputs) {
-            input.process(inputPath, outputPath, leftoverPath);
+            input.process(inputPath, outputPath, leftovers);
+        }
+
+        if (leftoverPath != null) {
+            for (final Map.Entry<String, BufferedImage> entry : leftovers.entrySet()) {
+                final String path = entry.getKey();
+                final BufferedImage leftoverImage = entry.getValue();
+                final Path leftoverImagePath = leftoverPath.resolve(path);
+                Slicer.writeImage(leftoverImagePath, leftoverImage);
+            }
         }
     }
 }
